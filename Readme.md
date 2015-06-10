@@ -5,6 +5,18 @@
 
 相关wiki:http://wiki.sankuai.com/pages/viewpage.action?pageId=221681737
 
+
+
+
+一共暴露个方法
+
+* grid.render()
+* grid.getRow()
+* grid.update()
+* grid.on('ajaxSuccess')
+* grid.on('ajaxFailed')
+
+
  * @example
     // 配置项
     var gridOptions = {
@@ -20,13 +32,13 @@
             },
             url: HOST_URL + '/mbox/admin/zjb/cinema.json',
             params: 'match=0',
-        }
+        },
 
         // 分页配置（非必须，每页加载数量、页码（从0开始计）、目标容器）
         'pagination': {
             limit: 200,
             offset: 0,
-            target: $('#pagination')
+            target: '#pagination'
         },
 
         // 表格列配置（required）
