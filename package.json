@@ -1,0 +1,14 @@
+{
+  "name": "@mtfe/grid",
+  "version": "1.0.3",
+  "description": "",
+  "main": "./grid.js",
+  "keywords": [
+    "grid"
+  ],
+  "author": "yanweiqing",
+  "license": "MIT",
+  "dependencies": {
+    "jquery": "^2.1.4"
+  }
+}
