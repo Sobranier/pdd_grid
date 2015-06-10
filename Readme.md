@@ -12,11 +12,15 @@
         // 目标容器（string，required）
         'container': '#list',
 
-        // ajax url（required）
-        'url': HOST_URL + '/mbox/admin/zjb/cinema.json',
-
-        // 默认参数（非必须）
-        'params': 'match=0',
+        // ajax url（required）需要代理的情况下要配置代理的地址和处理方式
+        'query': {
+            proxy: {
+                url: PROXY_URL + "?source=",
+                handle: encodeURIComponent
+            },
+            url: HOST_URL + '/mbox/admin/zjb/cinema.json',
+            params: 'match=0',
+        }
 
         // 分页配置（非必须，每页加载数量、页码（从0开始计）、目标容器）
         'pagination': {
