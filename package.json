@@ -1,8 +1,8 @@
 {
   "name": "@mtfe/grid",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
-  "main": "./grid.js",
+  "main": "./lib/grid.js",
   "keywords": [
     "grid"
   ],
