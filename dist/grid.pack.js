@@ -1,83 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
-/*
- * @example
-    // 配置项
-    var gridOptions = {
-
-        // 目标容器（string，required）
-        'container': '#list',
-
-        // ajax url（required）
-        'url': HOST_URL + '/mbox/admin/zjb/cinema.json',
-
-        // 默认参数（非必须）
-        'params': 'match=0',
-
-        // 分页配置（非必须，每页加载数量、页码（从0开始计）、目标容器）
-        'pagination': {
-            limit: 200,
-            offset: 0,
-            target: $('#pagination')
-        },
-
-        // 表格列配置（required）
-        'columns': [
-            {label:'影院编码', name:'code'},
-            {label:'影院名称', name:'name', class:'col-red'},
-            {label:'发现日期', name:'createTime', renderer:timeFormatRenderer},
-            {label:'匹配日期', name:'matchTime', renderer:timeFormatRenderer},
-            {label:'操作', renderer: [
-                {type:'button', name:'匹配', class:'J-grid_match'},
-            ]},
-        ],
-
-        // 自定义绑定时间(非必须，事件名、绑定目标、回调函数)
-        'events': [
-            {
-                eventName: 'click',
-                selectName: '.J-grid_match',
-                callBack: cinemaMatch
-            }
-        ]
-    };
-
-    // 注册grid
-    grid = new Grid(gridOptions);   
-
-
-    //  为grid的ajax事件绑定处理方式,因为不同情况下数据格式不同
-    grid.on('ajaxSuccess', function(e, data) {
-        if (!data.data && data.error) {
-            toastr.error(data.error.message);
-        } else {
-            grid.render(data.data);
-        }
-    });
-    grid.on('ajaxFailed', function(e, message) {
-        toastr.error(message.message);
-    });
-
-    // 触发生成表格，update没有参数，缺省则使用当前设定，也可以传入params和offset
-    grid.update();
-
-
-    // 自定义内容处理函数
-    function timeFormatRenderer(content) {
-        if (content) {
-            content = new Date(content);
-            content = content.getFullYear() + '-' + (content.getMonth() < 9 ? '0' : '')+ (content.getMonth() + 1) + '-' + (content.getDate() < 10 ? '0' : '') + content.getDate();
-        }
-        return content;
-    }
-    // 自定义绑定功能函数
-    function cinemaMatch() {
-        var data = grid.getRow($(this).parents('tr').index()),
-        ...
-    }
-*/
-
 var $ = require('jquery'),
     Pagination = require('../lib/pagination');
 
@@ -86,8 +9,8 @@ var Grid = function(options) {
     /*
      *  options
      * */
-    this['options'] = options;
-    this['options']['container'] = $(this['options']['container']);
+    this.options = options;
+    this.options.container = $(this.options.container);
     var pag;
 
 
@@ -96,10 +19,10 @@ var Grid = function(options) {
      * */
     this.init = function() {
         // 生成头部
-        this._renderHeader(this['options']['container'], this['options']['columns']);
+        this._renderHeader(this.options.container, this.options.columns);
 
         // 绑定事件
-        this._bindEvents(this['options']['events']);
+        this._bindEvents(this.options.events);
 
         // 生成分页
         this._createPagination();
@@ -111,7 +34,7 @@ var Grid = function(options) {
      *  index: 行数(requied)
      * */
     this.getRow = function(index) {
-        return this['datalist'][index];
+        return this.datalist[index];
     }
 
 
@@ -132,7 +55,7 @@ var Grid = function(options) {
      *  callBack: 回调函数（required）
      * */
     this.on = function(functionName, callBack) {
-        this['options']['container'].on(functionName, callBack);
+        this.options.container.on(functionName, callBack);
     }
 
 
@@ -143,11 +66,11 @@ var Grid = function(options) {
      * */
     this.render = function(data_list) {
         this.datalist = data_list;
-        var columns = this['options']['columns'],
+        var columns = this.options.columns,
             str = '',
-            $Body = this['options']['container'].find('.J-gridbody');
+            $Body = this.options.container.find('.J-gridbody');
         for (var i = 0, len = data_list.length; i < len; i ++) {
-            str += this._renderColumn(data_list[i], columns);
+            str += this._renderRow(data_list[i], columns, i);
         }
         $Body.html(str);
     }
@@ -158,12 +81,12 @@ var Grid = function(options) {
      * */
     this._createPagination = function(){
         var that = this;
-        if (this['options']['pagination']) {
-            pag = new Pagination(this['options']['pagination']['target'], this['options']['pagination']['offset']);
+        if (this.options.pagination) {
+            pag = new Pagination(this.options.pagination.target, this.options.pagination.offset);
             pag.on('pageChange', function(e, message) {
-                that.update(that['options']['params'], message);
+                that.update(that.options.query.params, message);
             });
-        }   
+        }
     }
 
 
@@ -171,9 +94,9 @@ var Grid = function(options) {
      *  更新分页
      * */
     this._updatePagination = function(state) {
-        if (this['options']['pagination']) {
-            var offset = this['options']['pagination']['current'];
-            this['options']['pagination']['offset'] = offset;
+        if (this.options.pagination) {
+            var offset = this.options.pagination.current;
+            this.options.pagination.offset = offset;
             pag.update(state, offset);
         }
     }
@@ -186,18 +109,18 @@ var Grid = function(options) {
      * */
     this._setParams = function(params, offset) {
         // 没有重设params参数就使用当前grid的params
-        params = (params !== undefined) ? params : this['options']['params'];
-        this['options']['params'] = params;
-        if (this['options']['pagination']) {
-            var limit = this['options']['pagination']['limit'];
-            offset = (offset !== undefined) ? offset : this['options']['pagination']['offset'];
+        params = (params !== undefined) ? params : this.options.query.params;
+        this.options.query.params = params;
+        if (this.options.pagination) {
+            var limit = this.options.pagination.limit;
+            offset = (offset !== undefined) ? offset : this.options.pagination.offset;
             params = params ? (params + '&') : '';
             params += 'limit=' + limit + '&offset=' + offset;
-            this['options']['pagination']['current'] = offset;
+            this.options.pagination.current = offset;
         }
         if (params !== undefined && params !== '') {
             params = '?' + params;
-        }  
+        }
         return params;
     }
 
@@ -207,22 +130,28 @@ var Grid = function(options) {
      *  params: 请求的参数(包括所有条件)
      * */
     this._sendAjax = function(params) {
-        var that = this;
+        var that = this,
+            url;
+        if (this.options.query.proxy !== undefined) {
+            url = this.options.query.proxy.url + this.options.query.proxy.handle(this.options.query.url + params);
+        } else {
+            url = this.options.query.url + params;
+        }
         $.ajax
         ({
-            url: PROXY_URL + "?source=" + encodeURIComponent(this['options']['url'] + params),
+            url: url,
             type: "get",
             dataType: "json",
             async: false,
             success: function(data) {
-                that['options']['container'].trigger('ajaxSuccess', data);
+                that.options.container.trigger('ajaxSuccess', data);
                 that._updatePagination(true);
             },
             error: function() {
-                that['options']['container'].trigger('ajaxFailed', {'message': 'failed'});
+                that.options.container.trigger('ajaxFailed', {'message': 'failed'});
                 that._updatePagination(false);
             }
-        });       
+        });
     }
 
 
@@ -235,7 +164,7 @@ var Grid = function(options) {
             return;
         }
         for (var i = 0, len = events.length; i < len; i ++) {
-            this['options']['container'].on(events[i]['eventName'], events[i]['selectName'], events[i]['callBack']);
+            this.options.container.on(events[i]['eventName'], events[i]['selectName'], events[i]['callBack']);
         }
     }
 
@@ -244,64 +173,79 @@ var Grid = function(options) {
      *  renderHeader
      * */
     this._renderHeader = function($node, columns) {
-        var str = '<thead><tr class="info">';
+        var str = ['<thead><tr class="info">'];
         for (var i = 0, len = columns.length; i < len; i ++) {
-            str += '<th>' + columns[i]['label'] + '</th>';
+            str.push('<th>', columns[i]['label'], '</th>');
         }
-        str += '</tr></thead><tbody class="J-gridbody"></tbody>';
-        $node.html(str);;
+        str.push('</tr></thead><tbody class="J-gridbody"></tbody>');
+        $node.html(str.join(''));;
     }
 
 
     /*
-     *  renderColumn
+     *  renderRow
      * */
-    this._renderColumn = function(data_tr, columns) {
+    this._renderRow = function(data_tr, columns, index) {
         var content,
-            str = '<tr>';
-        for (var i = 0, len = columns.length; i < len; i ++) {
-            str += '<td ' + (columns[i]['class'] ? ('class="' + columns[i]['class'] + '"') : '') + '>';
-            content = data_tr[columns[i]['name']] !== undefined ? data_tr[columns[i]['name']] : '';
-            if (columns[i]['renderer']) {
-                content = this._renderer(content, columns[i]['renderer']);
+            self = this,
+            str = ['<tr>'];
+        $.each(columns, function(i, column) {
+            str.push('<td ', column.class && ('class="' + column.class + '"'), '>');
+            content = data_tr[column.name] !== undefined ? data_tr[column.name] : '';
+            if (column.renderer) {
+                content = self._renderer(content, data_tr, index, column.renderer);
             }
-            str += content;
-            str += '</td>';
-        }
-        str += '</tr>';
-        return str;
+            str.push(content);
+            str.push('</td>');
+        });
+        str.push('</tr>');
+        return str.join('');
     }
 
 
     /*
      *  renderer
-     *  content: 本格数据,renderer: 渲染方法
+     *  content: 本格数据
+     *  renderer: 渲染方法
      * */
-    this._renderer = function(content, renderer) {
+    this._renderer = function(content, rowData, index, renderer) {
+        var result = [];
         if ($.isFunction(renderer)) {
-            content = renderer(content);
-        } else {
-            var type, className;
-            for (var i = 0, len = renderer.length; i < len; i ++) {
-                type = renderer[i]['type'];
-                className = renderer[i]['class'] ? renderer[i]['class'] : '';
-                switch (type) {
-                    case 'text':
-                        content += renderer[i]['name'];
-                        break;
-                    case 'input':
-                        content += '<input type="text" class="' + className + '" />';
-                        break;
-                    case 'button':
-                        content += '<button class="btn btn-default btn-sm ' + className + '">' + renderer[i]['name'] + '</button>';
-                        break;
-                    case 'a':
-                        content += '<a type="button" href="' + renderer[i]['url'] + '" target="_blank" class="btn btn-default btn-sm ' + className + '">' + renderer[i]['name'] + '</a>';
-                        break;
-                }
-            }
+            content = renderer(content, rowData, index);
         }
-        return content;
+        if ($.isArray(content)) {
+            var type, className;
+            $.each(content, function(index, item) {
+                type = item.type || {};
+                className = item.class ? item.class : '';
+                switch (type) {
+                    case 'text': {
+                        result.push(item.name); // TODO: 如果需要给这段文字设置样式, 需要外围嵌套一个tag
+                        break;
+                    }
+                    case 'input': {
+                        result.push('<input type="text" class="', className, '" />');
+                        break;
+                    }
+                    case 'button': {
+                        result.push('<button class="btn btn-default btn-sm ', className, '">', item.name, '</button>');
+                        break;
+                    }
+                    case 'a': {
+                        result.push('<a type="button" href="', item.url, '" target="_blank" class="btn btn-default btn-sm ', className, '">', item.name, '</a>');
+                        break;
+                    }
+                    case 'html': {
+                        result.push(item);
+                        break;
+                    }
+                }
+            });
+            result = result.join('');
+        } else { // 为其他类型时, 直接返回.
+            result = content;
+        }
+        return result;
     }
 
 
@@ -314,20 +258,21 @@ window.Grid = Grid;
 'use strict';
 var $ = require('jquery');
 
-var Pagination = function($node, offset) {
+var Pagination = function(target, offset) {
     this.current = this.offset = offset;
     this.isActive = false;
+    var $node = $(target);
 
     /*
      *  初始化
      * */
     this.init = function() {
-        var p_str = '<li class="disabled"><a href="#" class="J-page J-prev" data-page="-1"><span>&larr;</span></a></li>'
-                   +'<li><a>第<span class="pagination_current">' + (this.offset + 1) + '</span>页</a></li>'
-                   +'<li><a href="#" class="J-page" data-page="1"><span>&rarr;</span></a></li>'
-                   +'<li><input type="text" name="page_jump"/></li>'
-                   +'<li><button class="btn btn-primary btn-sm J-page">跳转</button></li>';
-        $node.html(p_str);
+        var p_str = ['<li class="disabled"><a href="#" class="J-page J-prev" data-page="-1"><span>&larr;</span></a></li>'];
+        p_str.push('<li><a>第<span class="pagination_current">', (this.offset + 1), '</span>页</a></li>');
+        p_str.push('<li><a href="#" class="J-page" data-page="1"><span>&rarr;</span></a></li>');
+        p_str.push('<li><input type="text" name="page_jump"/></li>');
+        p_str.push('<li><button class="btn btn-primary btn-sm J-page">跳转</button></li>');
+        $node.html(p_str.join(''));
         this._bindEvent();
     }
 
