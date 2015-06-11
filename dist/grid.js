@@ -114,7 +114,7 @@ var Grid = function(options) {
             var limit = this.options.pagination.limit;
             offset = (offset !== undefined) ? offset : this.options.pagination.offset;
             params = params ? (params + '&') : '';
-            params += 'limit=' + limit + '&offset=' + offset;
+            params += 'limit=' + limit + '&offset=' + (offset * limit);
             this.options.pagination.current = offset;
         }
         if (params !== undefined && params !== '') {
