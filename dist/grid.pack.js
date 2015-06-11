@@ -212,40 +212,42 @@ var Grid = function(options) {
         var result = [];
         if ($.isFunction(renderer)) {
             content = renderer(content, rowData, index);
+            if (!$.isArray(content)) {
+                return content;
+            } else {
+                renderer = content;
+            }
         }
-        if ($.isArray(content)) {
-            var type, className;
-            $.each(content, function(index, item) {
-                type = item.type || {};
-                className = item.class ? item.class : '';
-                switch (type) {
-                    case 'text': {
-                        result.push(item.name); // TODO: 如果需要给这段文字设置样式, 需要外围嵌套一个tag
-                        break;
-                    }
-                    case 'input': {
-                        result.push('<input type="text" class="', className, '" />');
-                        break;
-                    }
-                    case 'button': {
-                        result.push('<button class="btn btn-default btn-sm ', className, '">', item.name, '</button>');
-                        break;
-                    }
-                    case 'a': {
-                        result.push('<a type="button" href="', item.url, '" target="_blank" class="btn btn-default btn-sm ', className, '">', item.name, '</a>');
-                        break;
-                    }
-                    case 'html': {
-                        result.push(item);
-                        break;
-                    }
+
+        var type, className;
+        content = [];
+        $.each(renderer, function(index, item) {
+            type = item.type || {};
+            className = item.class ? item.class : '';
+            switch (type) {
+                case 'text': {
+                    content.push(item.name); // TODO: 如果需要给这段文字设置样式, 需要外围嵌套一个tag
+                    break;
                 }
-            });
-            result = result.join('');
-        } else { // 为其他类型时, 直接返回.
-            result = content;
-        }
-        return result;
+                case 'input': {
+                    content.push('<input type="text" class="', className, '" />');
+                    break;
+                }
+                case 'button': {
+                    content.push('<button class="btn btn-default btn-sm ', className, '">', item.name, '</button>');
+                    break;
+                }
+                case 'a': {
+                    content.push('<a type="button" href="', item.url, '" target="_blank" class="btn btn-default btn-sm ', className, '">', item.name, '</a>');
+                    break;
+                }
+                case 'html': {
+                    content.push(item.name);
+                    break;
+                }
+            }
+        });
+        return content.join('');
     }
 
 

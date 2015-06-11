@@ -1,6 +1,6 @@
 {
   "name": "@mtfe/grid",
-  "version": "1.0.71",
+  "version": "1.0.8",
   "description": "",
   "main": "./lib/grid.js",
   "keywords": [
