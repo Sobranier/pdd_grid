@@ -8,17 +8,33 @@
 
 
 
-一共暴露个方法
+一共暴露5个方法
 
 * grid.render()
-* grid.getRow()
+
+请将需要处理的数据数组传回。
+
+* grid.getRow(index)
+
+请传回行序号，将会返回所在行的所有数据
+
 * grid.update()
+
+更新，如果没有传入参数，将会使用之前一个请求或者默认的参数，也可以传入params和offset
+
 * grid.on('ajaxSuccess')
+
+暴露监听事件，在ajax成功的时候触发
+
 * grid.on('ajaxFailed')
+
+5XX的情况下触发
 
 
  * @example
     // 配置项
+    // 主要项目:
+    // container\query\pagination\columns
     var gridOptions = {
 
         // 目标容器（string，required）
