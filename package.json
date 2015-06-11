@@ -1,6 +1,6 @@
 {
   "name": "@mtfe/grid",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "",
   "main": "./lib/grid.js",
   "keywords": [
@@ -10,5 +10,9 @@
   "license": "MIT",
   "peerDependencies": {
     "jquery": "^2.1.4"
+  },
+  "scripts": {
+    "build": "browserify ./dist/grid.js > ./dist/grid.pack.js",
+    "uglify": "uglifyjs ./dist/grid.pack.js > ./dist/grid.min.js"
   }
 }

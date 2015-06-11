@@ -6,9 +6,7 @@
 相关wiki:http://wiki.sankuai.com/pages/viewpage.action?pageId=221681737
 
 
-
-
-一共暴露5个方法
+一共暴露5个方法,用户需要自己定义renderer的内容
 
 * grid.render()
 
