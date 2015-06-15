@@ -7,6 +7,8 @@
     <script src="../node_modules/jquery/dist/jquery.js"></script>
     <script src="../node_modules/toastr/toastr.js"></script>
     <link href="../node_modules/toastr/toastr.css" rel="stylesheet" type="text/css" />
+
+    <link href="./pagination.css" rel="stylesheet" type="text/css" />
 </head>
 <body class="container-fluid">
 
@@ -46,42 +48,64 @@
 
 
 <script src="../dist/grid.pack.js"></script>
+<script src="./box.js"></script>
 <script>
+
+$(function(){
     var $searchForm = $('#searchForm'),
         $searchButton = $('#searchButton');
 
-    $searchButton.on('click', function() {
-        $.ajax({
-            url: 'http://piaofang.maoyan.com/history/date/box.json?date=2015-06-13',
-            type: 'get',
-            dataType: 'jsonp',
-            success: function(data) {
-                console.log(data);
+    function init() {
+        gridInit();
+        bindEvents();
+    }
 
+    /**
+    *   grid初始化
+    */
+    function gridInit() {
+        var gridOption = {
+            container: '#list',
+            pagination: {
+                'target': '#pagination',
+                'limit': 100,
+                'offset': 0
             },
-            error: function(data) {
-                toastr.error(data);
-            }
-        });
-        /*
-        $.getJSON('http://piaofang.maoyan.com/history/date/box.json?date=2015-06-13&jsoncallback=?', function(data){
-            console.log(1234);
+            columns: [
+                {label:'片名', name: 'movieName'},
+                {label:'实时票房（万元）', name: 'dailyBoxOffice'},
+                {label:'票房占比', name: 'boxRate', renderer: boxNumberRenderer},
+                {label:'拍片占比', name: 'showRate', renderer: boxNumberRenderer},
+                {label:'累计票房', name: 'sumBoxOffice'}
+            ]
+        };
 
-        });
-        */
-    });
+        grid = new Grid(gridOption);
 
-    var gridOption = {
-        container: '#list',
-        pagination: {
-            limit: 20,
-            offset: 0,
-            target: '#pagination'
-        },
-        columns: [
-        
-        ]
-    };
+        function boxNumberRenderer(content) {
+            return content + "%";
+        }
+    }
+
+
+    /**
+    *   其他部分的绑定事件
+    */
+    function bindEvents() {
+        $searchButton.on('click', function() {
+            console.log(dataList);
+            grid.render(dataList);
+        });       
+    }
+
+
+
+
+    init();
+});
+
+
+
 
 </script>
 </body>

@@ -1,5 +1,8 @@
 'use strict';
 
+var $ = require('jquery'),
+    Pagination = require('../lib/pagination');
+
 var Grid = function(options) {
 
     /**
