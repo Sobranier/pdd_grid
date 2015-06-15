@@ -1,21 +1,19 @@
 'use strict';
 
-var $ = require('jquery'),
-    Pagination = require('../lib/pagination');
-
 var Grid = function(options) {
 
-    /*
-     *  options
-     * */
+    /**
+     *  [options 初始化]
+     */
     this.options = options;
     this.options.container = $(this.options.container);
+    this.dataList = {};
     var pag;
 
 
-    /*
-     *  初始化
-     * */
+    /**
+     *  [init 初始化]
+     */
     this.init = function() {
         // 生成头部
         this._renderHeader(this.options.container, this.options.columns);
@@ -28,12 +26,13 @@ var Grid = function(options) {
     }
 
 
-    /*
-     *  返回某一行数据
-     *  index: 行数(requied)
-     * */
+    /**
+     *  [getRow 获取某行数据]
+     *  @param  {[number]} index [行序号]
+     *  @return {[object]}      [对应行数据]
+     */
     this.getRow = function(index) {
-        return this.datalist[index];
+        return this.dataList[index];
     }
 
 
@@ -61,17 +60,17 @@ var Grid = function(options) {
     /*
      *  render
      *  列表内容生成方法
-     *  data_list: 列表数据内容(array);
+     *  dataList: 列表数据内容(array);
      * */
-    this.render = function(data_list) {
-        this.datalist = data_list;
-        var columns = this.options.columns,
-            str = '',
+    this.render = function(dataList) {
+        var self = this,
+            columns = this.options.columns,
             $Body = this.options.container.find('.J-gridbody');
-        for (var i = 0, len = data_list.length; i < len; i ++) {
-            str += this._renderRow(data_list[i], columns, i);
+        $Body.html('');
+        for (var i = 0, len = dataList.length; i < len; i ++) {
+            $Body.append(this._renderRow(dataList[i], columns, i));
+            self.dataList[i] = dataList[i];
         }
-        $Body.html(str);
     }
 
 
@@ -177,30 +176,57 @@ var Grid = function(options) {
             str.push('<th>', columns[i]['label'], '</th>');
         }
         str.push('</tr></thead><tbody class="J-gridbody"></tbody>');
-        $node.html(str.join(''));;
+        $node.html(str.join(''));
     }
 
 
     /*
      *  renderRow
      * */
-    this._renderRow = function(data_tr, columns, index) {
-        var content,
-            self = this,
-            str = ['<tr>'];
+    this._renderRow = function(dataRow, columns, index) {
+        var self = this,
+            tr = $('<tr></tr>').attr('data-index', index);
         $.each(columns, function(i, column) {
-            str.push('<td ', column.class && ('class="' + column.class + '"'), '>');
-            content = data_tr[column.name] !== undefined ? data_tr[column.name] : '';
+            var td = $('<td></td>');
+            td.addClass(column.class);
+            // str.push('<td ', column.class && ('class="' + column.class + '"'), '>');
+            var value = dataRow[column.name] !== undefined ? dataRow[column.name]: '';
             if (column.renderer) {
-                content = self._renderer(content, data_tr, index, column.renderer);
+                value = self._renderer(value, dataRow, index, column.renderer);
             }
-            str.push(content);
-            str.push('</td>');
+            td.append(value);
+            tr.append(td);
         });
-        str.push('</tr>');
-        return str.join('');
+        return tr;
     }
 
+    this.insertRow = function(dataRow) {
+        dataRow = dataRow || {};
+        var columns = this.options.columns;
+        var container = this.options.container;
+        var maxIndex = container.children('.J-gridbody').find('tr').last().attr('data-index') || -1;
+        var index = parseInt(maxIndex) + 1;
+        var tr = this._renderRow(dataRow, columns, index);
+        container.children('.J-gridbody').append(tr);
+        this.dataList[maxIndex] = dataRow;
+    };
+
+    this.deleteRow = function(index) {
+        if (!$.isNumeric(index)) {
+            return;
+        }
+        var container = this.options.container;
+        container.children('.J-gridbody').children('tr[data-index=' + index + ']').remove();
+        delete this.dataList[index];
+    };
+
+    this.getData = function() {
+        var result = [];
+        $.each(this.dataList, function(record) {
+            result.push(record);
+        });
+        return result;
+    };
 
     /*
      *  renderer
@@ -209,44 +235,66 @@ var Grid = function(options) {
      * */
     this._renderer = function(content, rowData, index, renderer) {
         var result = [];
+        if (Object.prototype.toString.call(renderer) === '[object String]') {
+            return $(content);
+        }
         if ($.isFunction(renderer)) {
-            content = renderer(content, rowData, index);
-            if (!$.isArray(content)) {
-                return content;
-            } else {
-                renderer = content;
-            }
+            renderer = renderer.call(this, content, rowData, index);
         }
 
-        var type, className;
-        content = [];
-        $.each(renderer, function(index, item) {
-            type = item.type || {};
-            className = item.class ? item.class : '';
-            switch (type) {
-                case 'text': {
-                    content.push(item.name); // TODO: 如果需要给这段文字设置样式, 需要外围嵌套一个tag
-                    break;
+        if ($.isArray(renderer)) {
+            var type, className;
+            result = [];
+            $.each(renderer, function(index, item) {
+                item = item || {};
+                type = item.type;
+                className = item.class ? item.class : '';
+                switch (type) {
+                    case 'text': {
+                        result.push($('<span>' + item.name + '</span>').addClass(className));
+                        break;
+                    }
+                    case 'input': {
+                        var input = $('<input type="text"/>');
+                        input.addClass(className);
+                        input.val(item.value);
+                        result.push(input);
+                        // result.push('<input type="text" class="', className, '" value="', item.value, '"/>');
+                        break;
+                    }
+                    case 'button': {
+                        var button = $('<button></button>');
+                        button.addClass('btn btn-default btn-sm');
+                        button.addClass(className);
+                        button.text(item.name);
+                        result.push(button);
+                        // result.push('<button class="btn btn-default btn-sm ', className, '">', item.name, '</button>');
+                        break;
+                    }
+                    case 'a': {
+                        var anchor = $('<a></a>');
+                        anchor.attr('href', item.url);
+                        anchor.attr('target', item.target || '_blank');
+                        anchor.addClass('btn btn-default btn-sm');
+                        anchor.addClass(className);
+                        anchor.html(item.name);
+                        result.push(anchor);
+                        // result.push('<a type="button" href="', item.url, '" target="_blank" class="btn btn-default btn-sm ', className, '">', item.name, '</a>');
+                        break;
+                    }
+                    case 'html': {
+                        result.push($(item.html));
+                        break;
+                    }
+                    default: {
+                        result.push(item);
+                    }
                 }
-                case 'input': {
-                    content.push('<input type="text" class="', className, '" />');
-                    break;
-                }
-                case 'button': {
-                    content.push('<button class="btn btn-default btn-sm ', className, '">', item.name, '</button>');
-                    break;
-                }
-                case 'a': {
-                    content.push('<a type="button" href="', item.url, '" target="_blank" class="btn btn-default btn-sm ', className, '">', item.name, '</a>');
-                    break;
-                }
-                case 'html': {
-                    content.push(item.name);
-                    break;
-                }
-            }
-        });
-        return content.join('');
+            });
+            return result;
+        } else {
+            return renderer;
+        }
     }
 
 
