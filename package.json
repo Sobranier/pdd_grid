@@ -11,6 +11,10 @@
   "peerDependencies": {
     "jquery": "^2.1.4"
   },
+  "devDependencies": {
+    "bootstrap": "^3.3.4",
+    "toastr": "^2.0.4"
+  },
   "scripts": {
     "build": "browserify ./dist/grid.js > ./dist/grid.pack.js",
     "uglify": "uglifyjs ./dist/grid.pack.js > ./dist/grid.min.js"

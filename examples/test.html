@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Grid</title>
+    <link href="../node_modules/bootstrap/dist/css/bootstrap.css" rel="stylesheet" type="text/css" />
+    <script src="../node_modules/jquery/dist/jquery.js"></script>
+    <script src="../node_modules/toastr/toastr.js"></script>
+    <link href="../node_modules/toastr/toastr.css" rel="stylesheet" type="text/css" />
+</head>
+<body class="container-fluid">
+
+
+    <div class="page-header">
+        <h1>Search Options <small>this is not required</small></h1>
+    </div>
+
+    <!-- Search Area -->
+    <div class="panel panel-default row">
+        <form class="form-horizontal panel-body">
+            <div class="form-group form-group-sm" id="searchForm">
+                <div class="col-sm-5">
+                    <label class="col-sm-3 control-label">CODE</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="code"/>
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <div class="col-sm-9">
+                        <button type="button" class="btn btn-primary btn-sm btn-block" id="searchButton">Search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!--Table Main-->
+    <div class="container-fluid">
+        <table class="table table-condensed table-bordered table-hover" id="list"></table>
+        <div class="row">
+            <nav class="col-sm-3 col-sm-offset-9">
+                <ul class="pagination" id="pagination"></ul>
+            </nav>
+        </div>
+    </div>
+
+
+<script src="../dist/grid.pack.js"></script>
+<script>
+    var $searchForm = $('#searchForm'),
+        $searchButton = $('#searchButton');
+
+    $searchButton.on('click', function() {
+        $.ajax({
+            url: 'http://piaofang.maoyan.com/history/date/box.json?date=2015-06-13',
+            type: 'get',
+            dataType: 'jsonp',
+            success: function(data) {
+                console.log(data);
+
+            },
+            error: function(data) {
+                toastr.error(data);
+            }
+        });
+        /*
+        $.getJSON('http://piaofang.maoyan.com/history/date/box.json?date=2015-06-13&jsoncallback=?', function(data){
+            console.log(1234);
+
+        });
+        */
+    });
+
+    var gridOption = {
+        container: '#list',
+        pagination: {
+            limit: 20,
+            offset: 0,
+            target: '#pagination'
+        },
+        columns: [
+        
+        ]
+    };
+
+</script>
+</body>
+</html>
