@@ -147,3 +147,32 @@ function abcRenderer(content, rowdata, index) {
         ...
     }
 ```
+
+
+## 开发
+
+1、主文件是lib/grid.js，为了非模块化打包，复制至dist/grid.js，并且修改
+
+```
+module.exports = Grid;
+```
+
+为
+
+```
+window.Grid = Grid;
+```
+
+以及修改require pagination路径
+
+2、在dist文件下运行（实现需要安装browerify）
+
+```
+browserify grid.js > grid.pack.js
+```
+
+3、在dist文件下运行（实现需要安装uglifyjs）
+
+```
+uglifyjs grid.pack.js > grid.min.js
+```
