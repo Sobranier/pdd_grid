@@ -38,48 +38,87 @@ var Grid = function(options) {
         return this.dataList[index];
     }
 
+    /**
+     *  [insertRow  插入行]
+     *  @param  {[object]}  dataRow
+     */
+    this.insertRow = function(dataRow) {
+        dataRow = dataRow || {};
+        var columns = this.options.columns;
+        var container = this.options.container;
+        var maxIndex = container.children('.J-gridbody').find('tr').last().attr('data-index') || -1;
+        var index = parseInt(maxIndex) + 1;
+        var tr = this._renderRow(dataRow, columns, index);
+        container.children('.J-gridbody').append(tr);
+        this.dataList[maxIndex] = dataRow;
+    };
 
-    /*
-     *  更新方法
-     *  params: 更新的搜索条件,string（非必须）
-     *  offset: 更新的查询页码,number（非必须）
-     * */
+    /**
+     *  [deleteRow  删除]
+     *  @param  {[number]}  index
+     */
+    this.deleteRow = function(index) {
+        if (!$.isNumeric(index)) {
+            return;
+        }
+        var container = this.options.container;
+        container.children('.J-gridbody').children('tr[data-index=' + index + ']').remove();
+        delete this.dataList[index];
+    };
+
+    /**
+     *  [getData]
+     */
+    this.getData = function() {
+        var result = [];
+        $.each(this.dataList, function(record) {
+            result.push(record);
+        });
+        return result;
+    };
+
+    /**
+     *  [update 更新数据、通过ajax]
+     *  @param  {[string]}  params  [搜索条件、不好喊offset和limit]
+     *  @param  {[number]}  offset  [查询页码]
+     */
     this.update = function(params, offset){
         var params = this._setParams(params, offset);
         this._sendAjax(params);
     }
 
 
-    /*
-     *  trigger对应的方法
-     *  functionName: 方法名（required）
-     *  callBack: 回调函数（required）
-     * */
+    /**
+     *  [on trigger对应的方法]
+     *  @param  {[string]}  functionName  [方法名]
+     *  @param  {[function]}    callBack    [回调函数]
+     */
     this.on = function(functionName, callBack) {
         this.options.container.on(functionName, callBack);
     }
 
 
-    /*
-     *  render
-     *  列表内容生成方法
-     *  dataList: 列表数据内容(array);
-     * */
+    /**
+     *  [render 生成列表]
+     *  @param  {[array]}   dataList    [列表数据内容];
+     */
     this.render = function(dataList) {
         var self = this,
             columns = this.options.columns,
-            $Body = this.options.container.find('.J-gridbody');
+            $Body = this.options.container.find('.J-gridbody'),
+            $documentFragment = $(document.createDocumentFragment());
         $Body.html('');
         for (var i = 0, len = dataList.length; i < len; i ++) {
-            $Body.append(this._renderRow(dataList[i], columns, i));
+            $documentFragment.append(this._renderRow(dataList[i], columns, i));
             self.dataList[i] = dataList[i];
         }
+        $Body.append($documentFragment);
     }
 
 
-    /*
-     *  生成分页
-     * */
+    /**
+     *  [createPagination 生成分页]
+     */
     this._createPagination = function(){
         var that = this;
         if (this.options.pagination) {
@@ -91,9 +130,10 @@ var Grid = function(options) {
     }
 
 
-    /*
-     *  更新分页
-     * */
+    /**
+     *  [updatePagination 更新分页]
+     *  @param  {[boolean]} state   [是否更新分页参数]
+     */
     this._updatePagination = function(state) {
         if (this.options.pagination) {
             var offset = this.options.pagination.current;
@@ -103,11 +143,12 @@ var Grid = function(options) {
     }
 
 
-    /*
-     *  处理ajax请求参数
-     *  params: 请求的参数(不包括offset和limit)(string)
-     *  offset: 页码(number)
-     * */
+    /**
+     *  [setParams 处理ajax请求参数]
+     *  @param  {[string]}  params  [请求的参数(不包括offset和limit)(string)]
+     *  @param  {[number]}  offset  [页码]
+     *  @return {[string]}      [拼接过的查询条件]
+     */
     this._setParams = function(params, offset) {
         // 没有重设params参数就使用当前grid的params
         params = (params !== undefined) ? params : this.options.query.params;
@@ -126,10 +167,10 @@ var Grid = function(options) {
     }
 
 
-    /*
-     *  发送ajax
-     *  params: 请求的参数(包括所有条件)
-     * */
+    /**
+     *  [sendAjax 发送ajax]
+     *  @param  {[string]}  params  [请求的参数(包括所有条件)]
+     */
     this._sendAjax = function(params) {
         var that = this,
             url;
@@ -156,10 +197,10 @@ var Grid = function(options) {
     }
 
 
-    /*
-     *  绑定复杂事件
-     *  events:事件列表
-     * */
+    /**
+     *  [bindEvents 绑定复杂事件]
+     *  @param  {[array]}   events  [事件列表]
+     */
     this._bindEvents = function(events) {
         if (!events) {
             return;
@@ -170,9 +211,11 @@ var Grid = function(options) {
     }
 
 
-    /*
-     *  renderHeader
-     * */
+    /**
+     *  [renderHeader]
+     *  @param  {[object]}  $node   [目标节点]
+     *  @param  {[array]}   columns
+     */
     this._renderHeader = function($node, columns) {
         var str = ['<thead><tr class="info">'];
         for (var i = 0, len = columns.length; i < len; i ++) {
@@ -183,9 +226,13 @@ var Grid = function(options) {
     }
 
 
-    /*
-     *  renderRow
-     * */
+    /**
+     *  [renderRow]
+     *  @param  {[object]}  dataRow
+     *  @param  {[array]}   columns
+     *  @param  {[]}    index
+     *  @return {[object]}
+     */
     this._renderRow = function(dataRow, columns, index) {
         var self = this,
             tr = $('<tr></tr>').attr('data-index', index);
@@ -203,39 +250,9 @@ var Grid = function(options) {
         return tr;
     }
 
-    this.insertRow = function(dataRow) {
-        dataRow = dataRow || {};
-        var columns = this.options.columns;
-        var container = this.options.container;
-        var maxIndex = container.children('.J-gridbody').find('tr').last().attr('data-index') || -1;
-        var index = parseInt(maxIndex) + 1;
-        var tr = this._renderRow(dataRow, columns, index);
-        container.children('.J-gridbody').append(tr);
-        this.dataList[maxIndex] = dataRow;
-    };
-
-    this.deleteRow = function(index) {
-        if (!$.isNumeric(index)) {
-            return;
-        }
-        var container = this.options.container;
-        container.children('.J-gridbody').children('tr[data-index=' + index + ']').remove();
-        delete this.dataList[index];
-    };
-
-    this.getData = function() {
-        var result = [];
-        $.each(this.dataList, function(record) {
-            result.push(record);
-        });
-        return result;
-    };
-
-    /*
-     *  renderer
-     *  content: 本格数据
-     *  renderer: 渲染方法
-     * */
+    /**
+     *  [renderer]
+     */
     this._renderer = function(content, rowData, index, renderer) {
         var result = [];
         if (Object.prototype.toString.call(renderer) === '[object String]') {
