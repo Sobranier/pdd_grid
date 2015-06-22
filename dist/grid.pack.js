@@ -20,7 +20,7 @@ var Grid = function(options) {
      */
     this.init = function() {
         // 生成头部
-        this._renderHeader(this.options.container, this.options.columns);
+        this.renderHeader(this.options.columns);
 
         // 绑定事件
         this._bindEvents(this.options.events);
@@ -39,20 +39,65 @@ var Grid = function(options) {
         return this.dataList[index];
     }
 
+
+    /**
+     *  [getList 获取数据列表]
+     *  @return {[array]}       [数据列表]
+     */
+    this.getList = function() {
+        return this.dataList;
+    }
+
+
     /**
      *  [insertRow  插入行]
      *  @param  {[object]}  dataRow
+     *  @param  {[number]}  index
      */
-    this.insertRow = function(dataRow) {
+    this.insertRow = function(dataRow, index) {
         dataRow = dataRow || {};
-        var columns = this.options.columns;
-        var container = this.options.container;
-        var maxIndex = container.children('.J-gridbody').find('tr').last().attr('data-index') || -1;
-        var index = parseInt(maxIndex) + 1;
-        var tr = this._renderRow(dataRow, columns, index);
-        container.children('.J-gridbody').append(tr);
-        this.dataList[maxIndex] = dataRow;
+        // 经过考虑，还是在此插入强逻辑，避免用户错误使用
+        var len = this.dataList.length || 0;
+        if (index !== undefined) {
+            if (index > len) {
+                index = len;
+            } else if (index < 0) {
+                index = 0;
+            }
+        } else {
+            index = len;
+        }
+        var tr = this._renderRow(dataRow, this.options.columns, index);
+        this._insertDom(len, index, tr);
+        this._insertData(index, dataRow);
     };
+
+
+    /**
+     *  [insertDom 插入行Dom操作]
+     *  @param  {[number]}  len [dataList长度]
+     *  @param  {[number]}  index   [序数]
+     *  $param  {[jquery obj]}  $tr [行dom]
+     */
+    this._insertDom = function(len, index, $tr) {
+        var $Body = this.options.container.find('.J-gridbody');
+        if (index === len) {
+            $Body.append($tr);
+        } else {
+            $tr.insertBefore($Body.children('tr').eq(index));
+        }
+    }
+
+
+    /**
+     *  [insertData 插入数据]
+     *  @param  {[number]}  index   [序数]
+     *  @param  {[object]}  dataRow [行数据]
+     */
+    this._insertData = function(index, dataRow) {
+        this.dataList.splice(index, 0, dataRow)
+    }
+
 
     /**
      *  [deleteRow  删除]
@@ -62,10 +107,29 @@ var Grid = function(options) {
         if (!$.isNumeric(index)) {
             return;
         }
-        var container = this.options.container;
-        container.children('.J-gridbody').children('tr[data-index=' + index + ']').remove();
-        delete this.dataList[index];
+        this._deleteDom(index);
+        this._deleteData(index);
     };
+
+
+    /**
+     *  [deleteDom  删除dom]
+     *  @param  {[number]}  index
+     */
+    this._deleteDom = function(index) {
+        var $Body = this.options.container.find('.J-gridbody');
+        $Body.children('tr').eq(index).remove();
+    }
+
+
+    /**
+     *  [deletaData 删除数据]
+     *  @param  {[number]}  index
+     */
+    this._deleteData = function(index) {
+        this.dataList.splice(index, 1);
+    }
+
 
     /**
      *  [getData]
@@ -77,6 +141,7 @@ var Grid = function(options) {
         });
         return result;
     };
+
 
     /**
      *  [update 更新数据、通过ajax]
@@ -109,6 +174,7 @@ var Grid = function(options) {
             $Body = this.options.container.find('.J-gridbody'),
             $documentFragment = $(document.createDocumentFragment());
         $Body.html('');
+        self.dataList = [];
         for (var i = 0, len = dataList.length; i < len; i ++) {
             $documentFragment.append(this._renderRow(dataList[i], columns, i));
             self.dataList[i] = dataList[i];
@@ -191,7 +257,7 @@ var Grid = function(options) {
                 that._updatePagination(true);
             },
             error: function() {
-                that.options.container.trigger('ajaxFailed', {'message': 'failed'});
+                that.options.container.trigger('ajaxFailed', {'message': 'Failed'});
                 that._updatePagination(false);
             }
         });
@@ -217,13 +283,13 @@ var Grid = function(options) {
      *  @param  {[object]}  $node   [目标节点]
      *  @param  {[array]}   columns
      */
-    this._renderHeader = function($node, columns) {
+    this.renderHeader = function(columns) {
         var str = ['<thead><tr class="info">'];
         for (var i = 0, len = columns.length; i < len; i ++) {
             str.push('<th>', columns[i]['label'], '</th>');
         }
         str.push('</tr></thead><tbody class="J-gridbody"></tbody>');
-        $node.html(str.join(''));
+        $(this.options.container).html(str.join(''));
     }
 
 
@@ -236,11 +302,10 @@ var Grid = function(options) {
      */
     this._renderRow = function(dataRow, columns, index) {
         var self = this,
-            tr = $('<tr></tr>').attr('data-index', index);
+            tr = $('<tr></tr>').data('index', index);
         $.each(columns, function(i, column) {
             var td = $('<td></td>');
             td.addClass(column.class);
-            // str.push('<td ', column.class && ('class="' + column.class + '"'), '>');
             var value = dataRow[column.name] !== undefined ? dataRow[column.name]: '';
             if (column.renderer) {
                 value = self._renderer(value, dataRow, index, column.renderer);
@@ -250,6 +315,7 @@ var Grid = function(options) {
         });
         return tr;
     }
+
 
     /**
      *  [renderer]
@@ -280,27 +346,22 @@ var Grid = function(options) {
                         input.addClass(className);
                         input.val(item.value);
                         result.push(input);
-                        // result.push('<input type="text" class="', className, '" value="', item.value, '"/>');
                         break;
                     }
                     case 'button': {
-                        var button = $('<button></button>');
-                        button.addClass('btn btn-default btn-sm');
+                        var button = $('<button class="btn btn-default btn-sm"></button>');
                         button.addClass(className);
                         button.text(item.name);
                         result.push(button);
-                        // result.push('<button class="btn btn-default btn-sm ', className, '">', item.name, '</button>');
                         break;
                     }
                     case 'a': {
-                        var anchor = $('<a></a>');
+                        var anchor = $('<a class="btn btn-default btn-sm"></a>');
                         anchor.attr('href', item.url);
                         anchor.attr('target', item.target || '_blank');
-                        anchor.addClass('btn btn-default btn-sm');
                         anchor.addClass(className);
                         anchor.html(item.name);
                         result.push(anchor);
-                        // result.push('<a type="button" href="', item.url, '" target="_blank" class="btn btn-default btn-sm ', className, '">', item.name, '</a>');
                         break;
                     }
                     case 'html': {

@@ -11,25 +11,25 @@
 
 一共暴露5个方法,用户需要自己定义renderer的内容
 
-* grid.render()
+* grid.render(dataList) 请将需要处理的数据数组传回。
 
-请将需要处理的数据数组传回。
+* grid.update() 更新，如果没有传入参数，将会使用之前一个请求或者默认的参数，也可以传入params和offset
 
-* grid.getRow(index)
+* grid.renderHeader(columns)    生成新的table头部
 
-请传回行序号，将会返回所在行的所有数据
+* grid.getRow(index)    请传回行序号，将会返回所在行的所有数据
 
-* grid.update()
+* grid.getList()    返回当前所有列表数据
 
-更新，如果没有传入参数，将会使用之前一个请求或者默认的参数，也可以传入params和offset
+* grid.insertRow(dataRow, index)    插入行
 
-* grid.on('ajaxSuccess')
+* grid.deleteRow(index) 删除行
 
-暴露监听事件，在ajax成功的时候触发
+* grid.on('ajaxSuccess')    暴露监听事件，在ajax成功的时候触发
 
-* grid.on('ajaxFailed')
+* grid.on('ajaxFailed') ajax发送失败的情况下触发
 
-5XX的情况下触发
+
 
 ##关于自定义renderer
 

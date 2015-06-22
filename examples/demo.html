@@ -40,7 +40,24 @@
     <div class="container-fluid">
         <table class="table table-condensed table-bordered table-hover" id="list"></table>
         <div class="row">
-            <nav class="col-sm-3 col-sm-offset-9">
+            <div class="col-sm-4">
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="addText"/>
+                    </div>
+                <div class="col-sm-5">
+                    <button type="button" class="btn btn-primary btn-sm btn-block" id="addButton">添加一行</button>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="deleteText"/>
+                    </div>
+                <div class="col-sm-5">
+                    <button type="button" class="btn btn-primary btn-sm btn-block" id="deleteButton">删除一行</button>
+                </div>
+            </div>
+
+            <nav class="col-sm-4">
                 <ul class="pagination" id="pagination"></ul>
             </nav>
         </div>
@@ -53,7 +70,16 @@
 
 $(function(){
     var $searchForm = $('#searchForm'),
-        $searchButton = $('#searchButton');
+        newLine = {
+            "boxRate":"90",
+            "dailyBoxOffice":"10000",
+            "movieId":1,
+            "movieName":"严伟庆世界",
+            "releaseDay":1,
+            "showRate":"99.99",
+            "showZero":false,
+            "sumBoxOffice":"1165259.36"
+        };
 
     function init() {
         gridInit();
@@ -72,11 +98,27 @@ $(function(){
                 'offset': 0
             },
             columns: [
-                {label:'片名', name: 'movieName'},
-                {label:'实时票房（万元）', name: 'dailyBoxOffice'},
-                {label:'票房占比', name: 'boxRate', renderer: boxNumberRenderer},
-                {label:'拍片占比', name: 'showRate', renderer: boxNumberRenderer},
-                {label:'累计票房', name: 'sumBoxOffice'}
+                {label: '片名', name: 'movieName'},
+                {label: '实时票房（万元）', name: 'dailyBoxOffice'},
+                {label: '票房占比', name: 'boxRate', renderer: boxNumberRenderer},
+                {label: '拍片占比', name: 'showRate', renderer: boxNumberRenderer},
+                {label: '累计票房', name: 'sumBoxOffice'},
+                {label: '操作', renderer: [
+                    {type: 'button', name: '添加一行', class: 'J-add'},
+                    {type: 'button', name: '删除本行', class: 'J-del'}
+                ]}
+            ],
+            events: [
+                {
+                    eventName: 'click',
+                    selectName: '.J-add',
+                    callBack: gridAddOneLine
+                },
+                {
+                    eventName: 'click',
+                    selectName: '.J-del',
+                    callBack: gridDelOneLine
+                }
             ]
         };
 
@@ -85,6 +127,18 @@ $(function(){
         function boxNumberRenderer(content) {
             return content + "%";
         }
+
+        function gridAddOneLine() {
+            // 这里也考虑使用另一组的index方法
+            var index = $(this).parents('tr').index();
+            grid.insertRow(newLine, index);
+        }
+
+        function gridDelOneLine() {
+            var index = $(this).parents('tr').index();
+            grid.deleteRow(index);
+        }
+
     }
 
 
@@ -92,14 +146,18 @@ $(function(){
     *   其他部分的绑定事件
     */
     function bindEvents() {
-        $searchButton.on('click', function() {
+        $('#searchButton').on('click', function() {
             console.log(dataList);
             grid.render(dataList);
-        });       
+        });
+
+        $('#addButton').on('click', function() {
+            grid.insertRow(newLine, $('#addText').val());
+        });
+        $('#delButton').on('click', function() {
+            grid.delRow($('delText').val());
+        });
     }
-
-
-
 
     init();
 });
