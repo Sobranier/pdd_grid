@@ -253,6 +253,11 @@ var Grid = function(options) {
             dataType: "json",
             async: false,
             success: function(data) {
+                if ($.isArray(data)) {
+                    data = {
+                        data: data
+                    }
+                }
                 that.options.container.trigger('ajaxSuccess', data);
                 that._updatePagination(true);
             },
